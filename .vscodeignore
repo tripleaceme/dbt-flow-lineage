@@ -1,0 +1,10 @@
+src/**
+webview-ui/**
+node_modules/**
+.vscode/**
+*.ts
+!dist/**
+esbuild.mjs
+tsconfig.json
+.eslintrc.*
+vitest.config.*
