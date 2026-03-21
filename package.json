@@ -2,7 +2,7 @@
   "name": "dbt-flow-lineage",
   "displayName": "dbt Flow Lineage",
   "description": "Animated column-level lineage visualization for dbt projects",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "tripleaceme",
   "license": "MIT",
   "repository": {
@@ -47,6 +47,74 @@
       {
         "command": "dbtFlowLineage.switchProject",
         "title": "dbt Flow: Switch dbt Project"
+      },
+      {
+        "command": "dbtFlowLineage.exportPNG",
+        "title": "dbt Flow: Export Graph as PNG"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "dbtFlowLineage.getStarted",
+        "title": "Get Started with dbt Flow Lineage",
+        "description": "Learn how to visualize column-level lineage in your dbt project",
+        "steps": [
+          {
+            "id": "defineColumns",
+            "title": "Define columns in schema.yml",
+            "description": "The extension reads column definitions from your `schema.yml` files. Every column you want to track must be listed under its model's `columns:` section.\n\n```yaml\nmodels:\n  - name: dim_artists\n    columns:\n      - name: artist_id\n      - name: total_streams\n```\n\nThis is the **only requirement** — the extension handles everything else automatically.",
+            "media": {
+              "markdown": "media/walkthrough/step-columns.md"
+            }
+          },
+          {
+            "id": "generateManifest",
+            "title": "Generate manifest.json",
+            "description": "Run `dbt compile` or `dbt docs generate` in your terminal to create the `manifest.json` file. This contains your column definitions and model dependencies.\n\n[Open Terminal](command:workbench.action.terminal.new)",
+            "media": {
+              "markdown": "media/walkthrough/step-manifest.md"
+            }
+          },
+          {
+            "id": "openLineage",
+            "title": "Open the lineage graph",
+            "description": "Click the **Flow** icon in the Activity Bar (left sidebar), then click any model to see its column lineage.\n\nOr right-click any `.sql` file → **Show Lineage for Current Model**.\n\n[Open Lineage Graph](command:dbtFlowLineage.showLineage)",
+            "media": {
+              "image": "media/demo-focused-view.png",
+              "altText": "Model-focused lineage view with direction filters"
+            },
+            "completionEvents": [
+              "onCommand:dbtFlowLineage.showLineage"
+            ]
+          },
+          {
+            "id": "traceColumn",
+            "title": "Trace a column's journey",
+            "description": "Click any **column name** in the graph to highlight its full upstream and downstream path. Unlinked columns grey out.\n\nEach edge is color-coded:\n- 🔵 **Passthrough** — unchanged from source\n- 🟢 **Rename** — same data, different name\n- 🟡 **Transform** — CASE, COALESCE, functions\n- 🟣 **Aggregate** — COUNT, SUM, AVG",
+            "media": {
+              "image": "media/demo-column-tracing.png",
+              "altText": "Column path tracing with animated particles"
+            }
+          },
+          {
+            "id": "filterDirection",
+            "title": "Filter upstream or downstream",
+            "description": "When viewing a model's lineage, use the **Both / Upstream / Downstream** toggle in the toolbar to show only what you need.\n\n- **Upstream**: Where does this model's data come from?\n- **Downstream**: Where does this model's data go?",
+            "media": {
+              "image": "media/demo-obt-lineage.png",
+              "altText": "Full OBT lineage with direction filters"
+            }
+          },
+          {
+            "id": "shortcuts",
+            "title": "Keyboard shortcuts & export",
+            "description": "Master the graph controls:\n\n| Key | Action |\n|-----|--------|\n| `+` / `=` | Zoom in |\n| `-` | Zoom out |\n| `0` | Fit to viewport |\n| `Esc` | Clear selection |\n| Drag | Move model nodes |\n| Double-click | Open `.sql` file |\n\nExport the graph as PNG for docs or presentations:\n\n[Export as PNG](command:dbtFlowLineage.exportPNG)",
+            "media": {
+              "image": "media/demo-dragged-layout.png",
+              "altText": "Draggable layout with rearranged nodes"
+            }
+          }
+        ]
       }
     ],
     "viewsContainers": {

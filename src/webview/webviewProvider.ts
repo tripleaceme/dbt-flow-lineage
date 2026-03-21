@@ -61,6 +61,9 @@ export class LineageWebviewProvider {
             this.currentDirection = message.payload.direction;
             this.sendGraphData(this.pendingFocusModelId);
             break;
+          case 'exportPNG':
+            this.savePNG(message.payload.dataUrl);
+            break;
         }
       },
       undefined,
@@ -167,6 +170,20 @@ export class LineageWebviewProvider {
         totalColumns: models.reduce((sum, m) => sum + m.columns.length, 0),
       },
     };
+  }
+
+  private async savePNG(dataUrl: string) {
+    const uri = await vscode.window.showSaveDialog({
+      defaultUri: vscode.Uri.file('lineage-graph.png'),
+      filters: { 'PNG Image': ['png'] },
+    });
+    if (!uri) return;
+
+    // Convert data URL to buffer
+    const base64 = dataUrl.replace(/^data:image\/png;base64,/, '');
+    const buffer = Buffer.from(base64, 'base64');
+    await vscode.workspace.fs.writeFile(uri, buffer);
+    vscode.window.showInformationMessage(`Lineage graph exported to ${uri.fsPath}`);
   }
 
   private async openModelFile(filePath: string) {

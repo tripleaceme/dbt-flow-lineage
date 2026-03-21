@@ -2,7 +2,7 @@ import { GraphRenderer } from './graph/renderer';
 import { AnimationEngine } from './graph/animation';
 import { traceColumnPath } from './graph/highlight';
 import { searchGraph, getModelTooltipHtml } from './graph/interaction';
-import { LineageGraph, ExtensionToWebviewMessage, ModelNode } from '../../src/lineage/graphTypes';
+import { LineageGraph, ExtensionToWebviewMessage, ModelNode, ColumnEdge } from '../../src/lineage/graphTypes';
 
 declare function acquireVsCodeApi(): {
   postMessage(message: any): void;
@@ -27,52 +27,45 @@ function init() {
   const zoomOutBtn = document.getElementById('zoom-out-btn')!;
   const zoomResetBtn = document.getElementById('zoom-reset-btn')!;
   const directionFilter = document.getElementById('direction-filter')!;
+  const exportBtn = document.getElementById('export-btn')!;
 
   renderer = new GraphRenderer(container);
   renderer.init();
-
   animation = new AnimationEngine();
 
-  // --- Zoom controls ---
+  // ── Zoom controls ──
   zoomInBtn.addEventListener('click', () => renderer.zoomIn());
   zoomOutBtn.addEventListener('click', () => renderer.zoomOut());
   zoomResetBtn.addEventListener('click', () => renderer.resetZoom());
 
-  // --- Direction filter (upstream/downstream/both) ---
+  // ── Direction filter ──
   directionFilter.addEventListener('click', (event) => {
     const btn = (event.target as Element).closest('.dir-btn') as HTMLElement;
     if (!btn) return;
-
     const direction = btn.getAttribute('data-dir') as 'both' | 'upstream' | 'downstream';
-
-    // Update active state
     directionFilter.querySelectorAll('.dir-btn').forEach((b) => b.classList.remove('active'));
     btn.classList.add('active');
-
-    // Tell extension to re-filter
     vscode.postMessage({ type: 'filterDirection', payload: { direction } });
   });
 
-  // Keyboard zoom: +/= to zoom in, - to zoom out, 0 to reset
-  document.addEventListener('keydown', (event) => {
-    // Don't capture if typing in search box
-    if (event.target === searchInput) return;
+  // ── Export PNG ──
+  exportBtn.addEventListener('click', async () => {
+    try {
+      const dataUrl = await renderer.exportAsPNG();
+      // Send to extension host to save
+      vscode.postMessage({ type: 'exportPNG', payload: { dataUrl } });
+    } catch (err) {
+      console.error('Export failed:', err);
+    }
+  });
 
+  // ── Keyboard shortcuts ──
+  document.addEventListener('keydown', (event) => {
+    if (event.target === searchInput) return;
     switch (event.key) {
-      case '+':
-      case '=':
-        event.preventDefault();
-        renderer.zoomIn();
-        break;
-      case '-':
-      case '_':
-        event.preventDefault();
-        renderer.zoomOut();
-        break;
-      case '0':
-        event.preventDefault();
-        renderer.resetZoom();
-        break;
+      case '+': case '=': event.preventDefault(); renderer.zoomIn(); break;
+      case '-': case '_': event.preventDefault(); renderer.zoomOut(); break;
+      case '0': event.preventDefault(); renderer.resetZoom(); break;
       case 'Escape':
         renderer.clearHighlights();
         animation.setHighlightedEdges(null);
@@ -80,23 +73,21 @@ function init() {
     }
   });
 
-  // Column click → highlight full upstream/downstream path + dim unlinked columns
+  // ── Column click → trace path ──
   renderer.setOnColumnClick((columnId, modelId) => {
     if (!graph) return;
-
     const { edgeIds, columnIds } = traceColumnPath(columnId, modelId, graph);
     if (edgeIds.size === 0) return;
-
     renderer.highlightEdges(edgeIds, columnIds);
     animation.setHighlightedEdges(edgeIds);
   });
 
-  // Model double-click → open file in editor
+  // ── Model double-click → open file ──
   renderer.setOnModelDblClick((filePath) => {
     vscode.postMessage({ type: 'openFile', payload: { filePath } });
   });
 
-  // After dragging a node, recreate particles on the redrawn edges
+  // ── Drag end → restart particles ──
   renderer.setOnDragEnd(() => {
     animation.dispose();
     const particlesLayer = renderer.getParticlesLayer();
@@ -105,7 +96,7 @@ function init() {
     animation.start();
   });
 
-  // Hover → tooltip
+  // ── Model hover → tooltip ──
   renderer.setOnNodeHover((model: ModelNode | null, x: number, y: number) => {
     if (model) {
       tooltip.innerHTML = getModelTooltipHtml(model);
@@ -117,27 +108,64 @@ function init() {
     }
   });
 
-  // Search
+  // ── Column hover → tooltip with description & type ──
+  renderer.setOnColumnHover((col, x, y) => {
+    if (col) {
+      const typeStr = col.dataType ? `<div class="tip-type">${col.dataType}</div>` : '';
+      const descStr = col.description ? `<div class="tip-desc">${col.description}</div>` : '';
+      tooltip.innerHTML = `<div class="tip-title">${col.name}</div>${typeStr}${descStr}`;
+      if (typeStr || descStr) {
+        tooltip.style.display = 'block';
+        tooltip.style.left = `${x + 12}px`;
+        tooltip.style.top = `${y + 12}px`;
+      }
+    } else {
+      tooltip.style.display = 'none';
+    }
+  });
+
+  // ── Edge hover → tooltip with transformation info ──
+  renderer.setOnEdgeHover((edge: ColumnEdge | null, x: number, y: number) => {
+    if (edge) {
+      const srcCol = edge.sourceColumnId.split('::')[1] || '';
+      const tgtCol = edge.targetColumnId.split('::')[1] || '';
+      const srcModel = edge.sourceModelId.split('.').pop() || '';
+      const tgtModel = edge.targetModelId.split('.').pop() || '';
+      const typeLabel = edge.transformationType;
+
+      tooltip.innerHTML = `
+        <div class="tip-title">
+          <span class="tip-edge-label ${typeLabel}">${typeLabel}</span>
+        </div>
+        <div class="tip-type">${srcModel}.${srcCol} → ${tgtModel}.${tgtCol}</div>
+      `;
+      tooltip.style.display = 'block';
+      tooltip.style.left = `${x + 12}px`;
+      tooltip.style.top = `${y + 12}px`;
+    } else {
+      tooltip.style.display = 'none';
+    }
+  });
+
+  // ── Search with visual highlighting ──
   searchInput.addEventListener('input', () => {
     if (!graph) return;
-
     const query = searchInput.value;
     if (!query.trim()) {
-      renderer.clearHighlights();
-      animation.setHighlightedEdges(null);
+      renderer.clearSearch();
       return;
     }
 
     const results = searchGraph(query, graph);
+    renderer.highlightSearch(results.modelIds, results.columnIds);
+
     if (results.modelIds.size > 0) {
       const firstModelId = results.modelIds.values().next().value;
-      if (firstModelId) {
-        renderer.centerOnModel(firstModelId);
-      }
+      if (firstModelId) renderer.centerOnModel(firstModelId);
     }
   });
 
-  // Click background to clear selection
+  // ── Click background to clear ──
   container.addEventListener('click', (event) => {
     const target = event.target as Element;
     if (target.tagName === 'svg' || target.classList.contains('root')) {
@@ -173,24 +201,13 @@ function init() {
     animation.start();
   }
 
-  // Listen for messages from extension host
   window.addEventListener('message', (event) => {
     const message = event.data as ExtensionToWebviewMessage;
-
     switch (message.type) {
-      case 'setGraphData':
-        renderGraph(message.payload);
-        break;
-
-      case 'highlightModel':
-        renderer.centerOnModel(message.payload.modelId);
-        break;
-
-      case 'focusModel':
-        break;
-
-      case 'updateTheme':
-        break;
+      case 'setGraphData': renderGraph(message.payload); break;
+      case 'highlightModel': renderer.centerOnModel(message.payload.modelId); break;
+      case 'focusModel': break;
+      case 'updateTheme': break;
     }
   });
 

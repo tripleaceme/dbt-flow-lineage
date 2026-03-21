@@ -84,4 +84,5 @@ export type WebviewToExtensionMessage =
   | { type: 'requestRefresh' }
   | { type: 'openFile'; payload: { filePath: string } }
   | { type: 'filterDirection'; payload: { direction: LineageDirection } }
+  | { type: 'exportPNG'; payload: { dataUrl: string } }
   | { type: 'ready' };

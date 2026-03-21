@@ -153,6 +153,14 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  // Export PNG (triggered from webview button or command palette)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('dbtFlowLineage.exportPNG', () => {
+      webviewProvider.show(context);
+      // The actual export is triggered from the webview's Export PNG button
+    })
+  );
+
   // Refresh
   context.subscriptions.push(
     vscode.commands.registerCommand('dbtFlowLineage.refresh', async () => {
