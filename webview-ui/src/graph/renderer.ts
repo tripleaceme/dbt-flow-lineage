@@ -10,6 +10,7 @@ import {
 
 const COLORS = {
   passthrough: '#3b82f6',
+  rename: '#10b981',
   transform: '#f59e0b',
   aggregate: '#8b5cf6',
   modelBg: '#2d2d2d',
@@ -31,6 +32,7 @@ export class GraphRenderer {
   private onColumnClick: ((columnId: string, modelId: string) => void) | null = null;
   private onModelDblClick: ((filePath: string) => void) | null = null;
   private onNodeHover: ((model: ModelNode | null, x: number, y: number) => void) | null = null;
+  private onDragEnd: (() => void) | null = null;
 
   constructor(private container: HTMLElement) {}
 
@@ -80,6 +82,10 @@ export class GraphRenderer {
     this.onNodeHover = handler;
   }
 
+  setOnDragEnd(handler: () => void) {
+    this.onDragEnd = handler;
+  }
+
   render(graph: LineageGraph) {
     this.graph = graph;
 
@@ -111,14 +117,14 @@ export class GraphRenderer {
     // Render edges first (below nodes)
     this.renderColumnEdges(graph.columnEdges);
 
-    // Render model nodes
-    this.renderModelNodes(graph.models);
+    // Render model nodes, marking the focused model
+    this.renderModelNodes(graph.models, graph.focusModelId);
 
     // Fit to viewport
     this.fitToView(layout.width, layout.height);
   }
 
-  private renderModelNodes(models: ModelNode[]) {
+  private renderModelNodes(models: ModelNode[], focusModelId?: string) {
     const nodesLayer = this.rootGroup.select<SVGGElement>('.nodes-layer');
 
     for (const model of models) {
@@ -126,11 +132,32 @@ export class GraphRenderer {
       if (!pos) continue;
 
       const isSource = model.resourceType === 'source';
+      const isFocused = model.id === focusModelId;
       const group = nodesLayer
         .append('g')
-        .attr('class', 'model-node')
+        .attr('class', `model-node${isFocused ? ' focused-model' : ''}`)
         .attr('data-model-id', model.id)
         .attr('transform', `translate(${pos.x}, ${pos.y})`);
+
+      // Make model nodes draggable
+      const dragBehavior = d3.drag<SVGGElement, unknown>()
+        .on('start', (event) => {
+          event.sourceEvent.stopPropagation();
+        })
+        .on('drag', (event) => {
+          pos.x += event.dx;
+          pos.y += event.dy;
+          group.attr('transform', `translate(${pos.x}, ${pos.y})`);
+          this.redrawEdges();
+        })
+        .on('end', () => {
+          // Restart particles on the new edge paths
+          if (this.onDragEnd) {
+            this.onDragEnd();
+          }
+        });
+
+      group.call(dragBehavior);
 
       // Background rect
       group
@@ -313,9 +340,11 @@ export class GraphRenderer {
           edgeId: el.getAttribute('data-edge-id') || '',
           transformationType: el.classList.contains('passthrough')
             ? 'passthrough'
-            : el.classList.contains('aggregate')
-              ? 'aggregate'
-              : 'transform',
+            : el.classList.contains('rename')
+              ? 'rename'
+              : el.classList.contains('aggregate')
+                ? 'aggregate'
+                : 'transform',
           sourceColumnId: el.getAttribute('data-source-col') || '',
           targetColumnId: el.getAttribute('data-target-col') || '',
         });
@@ -328,14 +357,15 @@ export class GraphRenderer {
     return this.rootGroup.select<SVGGElement>('.particles-layer').node()!;
   }
 
-  highlightEdges(edgeIds: Set<string>) {
-    // Dim everything
-    this.rootGroup.selectAll('.model-node').classed('dimmed', true);
+  /**
+   * Highlight edges and connected columns. Dims unrelated columns individually
+   * rather than entire model nodes.
+   */
+  highlightEdges(edgeIds: Set<string>, connectedColumnIds: Set<string>) {
+    // Dim all edges
     this.rootGroup.selectAll('.edge-path').classed('dimmed', true);
 
-    // Undim highlighted edges and their connected models
-    const connectedModels = new Set<string>();
-
+    // Highlight matched edges
     this.rootGroup
       .selectAll<SVGPathElement, unknown>('.edge-path')
       .each(function () {
@@ -345,6 +375,8 @@ export class GraphRenderer {
         }
       });
 
+    // Find which models have at least one connected column
+    const connectedModels = new Set<string>();
     if (this.graph) {
       for (const edge of this.graph.columnEdges) {
         if (edgeIds.has(edge.id)) {
@@ -354,10 +386,26 @@ export class GraphRenderer {
       }
     }
 
+    // Dim model nodes that have NO connected columns
     this.rootGroup.selectAll<SVGGElement, unknown>('.model-node').each(function () {
       const modelId = this.getAttribute('data-model-id') || '';
-      if (connectedModels.has(modelId)) {
-        d3.select(this).classed('dimmed', false);
+      if (!connectedModels.has(modelId)) {
+        d3.select(this).classed('dimmed', true);
+      }
+    });
+
+    // Within connected models, dim individual columns that aren't in the path
+    this.rootGroup.selectAll<SVGTextElement, unknown>('.column-row').each(function () {
+      const colId = this.getAttribute('data-column-id') || '';
+      if (!connectedColumnIds.has(colId)) {
+        d3.select(this).classed('column-dimmed', true);
+      }
+    });
+
+    this.rootGroup.selectAll<SVGCircleElement, unknown>('.column-dot').each(function () {
+      const colId = this.getAttribute('data-column-id') || '';
+      if (!connectedColumnIds.has(colId)) {
+        d3.select(this).classed('column-dimmed', true);
       }
     });
   }
@@ -365,6 +413,23 @@ export class GraphRenderer {
   clearHighlights() {
     this.rootGroup.selectAll('.dimmed').classed('dimmed', false);
     this.rootGroup.selectAll('.highlighted').classed('highlighted', false);
+    this.rootGroup.selectAll('.column-dimmed').classed('column-dimmed', false);
+  }
+
+  /**
+   * Redraw all column edges based on current node positions.
+   * Called when nodes are dragged to new positions.
+   */
+  private redrawEdges() {
+    if (!this.graph) return;
+
+    const edgesLayer = this.rootGroup.select<SVGGElement>('.edges-layer');
+    edgesLayer.selectAll('*').remove();
+
+    // Also clear particles (they'll be recreated after drag ends)
+    this.rootGroup.select('.particles-layer').selectAll('*').remove();
+
+    this.renderColumnEdges(this.graph.columnEdges);
   }
 
   fitToView(graphWidth: number, graphHeight: number) {
@@ -380,6 +445,39 @@ export class GraphRenderer {
       this.zoom.transform,
       d3.zoomIdentity.translate(tx, ty).scale(scale)
     );
+  }
+
+  /**
+   * Programmatic zoom in/out. Factor > 1 zooms in, < 1 zooms out.
+   * Uses d3.zoom().scaleBy() to stay in sync with mouse/trackpad zoom state.
+   */
+  zoomBy(factor: number) {
+    this.svg
+      .transition()
+      .duration(200)
+      .call(this.zoom.scaleBy, factor);
+  }
+
+  zoomIn() {
+    this.zoomBy(1.3);
+  }
+
+  zoomOut() {
+    this.zoomBy(1 / 1.3);
+  }
+
+  resetZoom() {
+    if (this.graph) {
+      const allModelEdges = [
+        ...this.graph.modelEdges,
+        ...this.graph.columnEdges.map((e) => ({
+          sourceModelId: e.sourceModelId,
+          targetModelId: e.targetModelId,
+        })),
+      ];
+      const layout = computeLayout(this.graph.models, allModelEdges);
+      this.fitToView(layout.width, layout.height);
+    }
   }
 
   centerOnModel(modelId: string) {

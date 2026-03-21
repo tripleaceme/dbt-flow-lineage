@@ -21,10 +21,11 @@ class ModelTreeItem extends vscode.TreeItem {
 
     this.contextValue = 'model';
 
-    // Click model → show lineage for this model
+    // Click model → show lineage focused on this model
     this.command = {
-      command: 'dbtFlowLineage.showLineage',
+      command: 'dbtFlowLineage.showLineageForModelId',
       title: 'Show Lineage',
+      arguments: [model.id],
     };
   }
 }

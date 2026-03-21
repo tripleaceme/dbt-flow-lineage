@@ -23,6 +23,7 @@ export function getWebviewContent(webview: vscode.Webview, scriptUri: vscode.Uri
       --border-color: var(--vscode-panel-border, #404040);
       --accent: var(--vscode-focusBorder, #007fd4);
       --passthrough-color: #3b82f6;
+      --rename-color: #10b981;
       --transform-color: #f59e0b;
       --aggregate-color: #8b5cf6;
     }
@@ -96,6 +97,43 @@ export function getWebviewContent(webview: vscode.Webview, scriptUri: vscode.Uri
       color: var(--text-secondary);
     }
 
+    .direction-filter {
+      display: flex;
+      gap: 2px;
+      background: var(--vscode-input-background, #3c3c3c);
+      border-radius: 4px;
+      padding: 2px;
+    }
+
+    .dir-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .dir-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .dir-btn.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    #toolbar .focus-badge {
+      background: var(--accent);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
     #graph-container {
       flex: 1;
       position: relative;
@@ -112,6 +150,11 @@ export function getWebviewContent(webview: vscode.Webview, scriptUri: vscode.Uri
       rx: 6;
       ry: 6;
       stroke-width: 1;
+    }
+
+    .model-node.focused-model rect:first-child {
+      stroke: var(--accent) !important;
+      stroke-width: 2;
     }
 
     .model-node .header {
@@ -146,6 +189,7 @@ export function getWebviewContent(webview: vscode.Webview, scriptUri: vscode.Uri
     }
 
     .edge-path.passthrough { stroke: var(--passthrough-color); }
+    .edge-path.rename { stroke: var(--rename-color); }
     .edge-path.transform { stroke: var(--transform-color); }
     .edge-path.aggregate { stroke: var(--aggregate-color); }
 
@@ -155,6 +199,7 @@ export function getWebviewContent(webview: vscode.Webview, scriptUri: vscode.Uri
     }
 
     .particle.passthrough { fill: var(--passthrough-color); }
+    .particle.rename { fill: var(--rename-color); }
     .particle.transform { fill: var(--transform-color); }
     .particle.aggregate { fill: var(--aggregate-color); }
 
@@ -162,6 +207,20 @@ export function getWebviewContent(webview: vscode.Webview, scriptUri: vscode.Uri
     .dimmed { opacity: 0.1 !important; }
     .highlighted .edge-path { opacity: 1; stroke-width: 2.5; }
     .highlighted .particle { r: 4; }
+
+    /* Column-level dimming: individual unlinked columns go grey */
+    .column-dimmed {
+      opacity: 0.15 !important;
+    }
+
+    /* Draggable cursor on model headers */
+    .model-node .header {
+      cursor: grab;
+    }
+
+    .model-node .header:active {
+      cursor: grabbing;
+    }
 
     /* Tooltip */
     #tooltip {
@@ -204,17 +263,67 @@ export function getWebviewContent(webview: vscode.Webview, scriptUri: vscode.Uri
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Zoom controls */
+    .zoom-controls {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 50;
+    }
+
+    .zoom-btn {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+      line-height: 1;
+    }
+
+    .zoom-btn:hover {
+      background: var(--border-color);
+    }
+
+    .zoom-btn .kbd-hint {
+      display: none;
+    }
+
+    .zoom-btn:hover .kbd-hint {
+      display: inline;
+    }
   </style>
 </head>
 <body>
   <div id="app">
     <div id="toolbar">
       <input class="search-box" type="text" placeholder="Search models or columns..." id="search-input">
+      <span id="focus-badge" class="focus-badge" style="display:none"></span>
+      <div class="direction-filter" id="direction-filter" style="display:none">
+        <button class="dir-btn active" data-dir="both" title="Show upstream + downstream">Both</button>
+        <button class="dir-btn" data-dir="upstream" title="Show upstream only">Upstream</button>
+        <button class="dir-btn" data-dir="downstream" title="Show downstream only">Downstream</button>
+      </div>
       <span class="stats" id="stats"></span>
       <div class="legend">
         <div class="legend-item">
           <div class="legend-dot" style="background: var(--passthrough-color)"></div>
           Passthrough
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background: var(--rename-color)"></div>
+          Rename
         </div>
         <div class="legend-item">
           <div class="legend-dot" style="background: var(--transform-color)"></div>
@@ -230,6 +339,11 @@ export function getWebviewContent(webview: vscode.Webview, scriptUri: vscode.Uri
       <div id="loading">
         <div class="spinner"></div>
         <span>Loading lineage graph...</span>
+      </div>
+      <div class="zoom-controls">
+        <button class="zoom-btn" id="zoom-in-btn" title="Zoom in (+)">+</button>
+        <button class="zoom-btn" id="zoom-out-btn" title="Zoom out (-)">-</button>
+        <button class="zoom-btn" id="zoom-reset-btn" title="Reset zoom (0)" style="font-size:12px">Fit</button>
       </div>
     </div>
     <div id="tooltip"></div>

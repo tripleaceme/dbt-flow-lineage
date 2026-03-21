@@ -5,6 +5,10 @@
   "version": "0.1.0",
   "publisher": "tripleaceme",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tripleaceme/dbt-flow-lineage"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -39,6 +43,10 @@
         "command": "dbtFlowLineage.refresh",
         "title": "dbt Flow: Refresh Lineage Data",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "dbtFlowLineage.switchProject",
+        "title": "dbt Flow: Switch dbt Project"
       }
     ],
     "viewsContainers": {
@@ -65,6 +73,13 @@
           "command": "dbtFlowLineage.showLineageForModel",
           "when": "resourceExtname == .sql",
           "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "dbtFlowLineage.showLineageForModel",
+          "when": "resourceExtname == .sql",
+          "group": "navigation@100"
         }
       ],
       "explorer/context": [
@@ -131,7 +146,6 @@
   },
   "dependencies": {
     "d3": "^7.9.0",
-    "dagre": "^0.8.5",
-    "node-sql-parser": "^5.3.0"
+    "dagre": "^0.8.5"
   }
 }

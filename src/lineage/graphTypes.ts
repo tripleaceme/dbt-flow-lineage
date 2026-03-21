@@ -1,5 +1,5 @@
 /** Transformation type classification for column edges */
-export type TransformationType = 'passthrough' | 'transform' | 'aggregate';
+export type TransformationType = 'passthrough' | 'rename' | 'transform' | 'aggregate';
 
 /** Column within a model or source */
 export interface ColumnNode {
@@ -59,6 +59,8 @@ export interface LineageGraph {
   models: ModelNode[];
   columnEdges: ColumnEdge[];
   modelEdges: ModelEdge[];
+  /** When set, webview should only show this model + its upstream/downstream */
+  focusModelId?: string;
   metadata: {
     generatedAt: string;
     dbtProjectName: string;
@@ -72,10 +74,14 @@ export interface LineageGraph {
 export type ExtensionToWebviewMessage =
   | { type: 'setGraphData'; payload: LineageGraph }
   | { type: 'highlightModel'; payload: { modelId: string } }
+  | { type: 'focusModel'; payload: { modelId: string } }
   | { type: 'updateTheme'; payload: Record<string, string> };
+
+export type LineageDirection = 'both' | 'upstream' | 'downstream';
 
 /** Messages from webview to extension host */
 export type WebviewToExtensionMessage =
   | { type: 'requestRefresh' }
   | { type: 'openFile'; payload: { filePath: string } }
+  | { type: 'filterDirection'; payload: { direction: LineageDirection } }
   | { type: 'ready' };

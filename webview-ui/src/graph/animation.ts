@@ -29,6 +29,7 @@ const GLOW_FILTER_ID = 'particle-glow';
 
 const COLORS: Record<string, string> = {
   passthrough: '#3b82f6',
+  rename: '#10b981',
   transform: '#f59e0b',
   aggregate: '#8b5cf6',
 };

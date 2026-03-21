@@ -234,15 +234,19 @@ export class WelcomeProvider {
   <div class="colors">
     <div class="color-item">
       <div class="color-dot" style="background: #3b82f6"></div>
-      Passthrough
+      Passthrough — column unchanged from source
+    </div>
+    <div class="color-item">
+      <div class="color-dot" style="background: #10b981"></div>
+      Rename — same data, different name
     </div>
     <div class="color-item">
       <div class="color-dot" style="background: #f59e0b"></div>
-      Transform
+      Transform — CASE, COALESCE, functions
     </div>
     <div class="color-item">
       <div class="color-dot" style="background: #8b5cf6"></div>
-      Aggregate
+      Aggregate — COUNT, SUM, AVG, etc.
     </div>
   </div>
 
@@ -252,24 +256,32 @@ export class WelcomeProvider {
     <div class="step">
       <div class="step-number">1</div>
       <div class="step-content">
-        <h4>Generate dbt artifacts</h4>
-        <p>Run <code>dbt compile</code> or <code>dbt docs generate</code> in your project to create manifest.json.</p>
+        <h4>Define columns in schema.yml</h4>
+        <p>The extension reads column definitions from your <code>schema.yml</code> files. Every column you want to track must be listed under its model's <code>columns:</code> section. This is the only requirement.</p>
       </div>
     </div>
 
     <div class="step">
       <div class="step-number">2</div>
       <div class="step-content">
-        <h4>Open the lineage graph</h4>
-        <p>Click the Flow icon in the Activity Bar (left sidebar), or right-click any .sql file and select "Show Column Lineage".</p>
+        <h4>Generate dbt artifacts</h4>
+        <p>Run <code>dbt compile</code> or <code>dbt docs generate</code> to create <code>manifest.json</code>. This file contains your column definitions and model dependencies.</p>
       </div>
     </div>
 
     <div class="step">
       <div class="step-number">3</div>
       <div class="step-content">
+        <h4>Open the lineage graph</h4>
+        <p>Click the Flow icon in the Activity Bar, or right-click any <code>.sql</code> file and select "Show Column Lineage". The graph shows only that model and its upstream/downstream neighbors.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">4</div>
+      <div class="step-content">
         <h4>Explore your data flow</h4>
-        <p>Click any column to trace its full lineage path. Double-click a model header to jump to the SQL file. Use the search bar to find specific models or columns.</p>
+        <p>Click any column to trace its full path. Press <code>+</code>/<code>-</code> to zoom, <code>Esc</code> to clear selection. Double-click a model header to open the SQL file.</p>
       </div>
     </div>
   </div>
