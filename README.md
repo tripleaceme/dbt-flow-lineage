@@ -68,7 +68,7 @@ Search for **"dbt Flow Lineage"** in the Extensions tab and click **Install**.
 
 ### Option 2: Download from GitHub Releases (latest updates)
 
-1. **[Download the latest `.vsix` from GitHub Releases](https://github.com/tripleaceme/dbt-flow-lineage/releases/tag/v0.1.0)**
+1. **[Download the latest `.vsix` from GitHub Releases](https://github.com/tripleaceme/dbt-flow-lineage/releases)**
 2. In VS Code / Cursor / Windsurf, go to the **Extensions** tab
 3. Click the **`...`** menu (top-right of Extensions panel) → **"Install from VSIX..."**
 4. Select the downloaded `.vsix` file
