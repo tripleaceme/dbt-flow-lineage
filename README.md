@@ -2,7 +2,7 @@
 
 **Animated column-level lineage visualization for dbt projects.**
 
-See exactly how each column flows through your dbt models — from source to final table — with color-coded animated paths that show passthrough, renames, transforms, and aggregations.
+See exactly how each column flows through your dbt models from source to final table with color-coded animated paths that show passthrough, renames, transforms, and aggregations.
 
 ## Screenshots
 
