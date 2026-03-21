@@ -60,7 +60,12 @@ Drag model boxes to rearrange the graph layout. Edges and animations follow auto
 
 ## Installation
 
-### Option 1: Download from GitHub Releases (recommended)
+### Option 1: From VS Code Marketplace
+
+Search for **"dbt Flow Lineage"** in the Extensions tab.
+
+
+### Option 2: Download from GitHub Releases for more updated version (recommended)
 
 1. **[Download the latest `.vsix` from GitHub Releases](https://github.com/tripleaceme/dbt-flow-lineage/releases/tag/v0.1.0)**
 2. In VS Code / Cursor / Windsurf, go to the **Extensions** tab
@@ -70,7 +75,7 @@ Drag model boxes to rearrange the graph layout. Edges and animations follow auto
 
 ![Install from VSIX](media/install-from.gif)
 
-### Option 2: Install from terminal
+### Option 3: Install from terminal
 
 ```bash
 # Download the latest release
@@ -83,7 +88,7 @@ code --install-extension dbt-flow-lineage.vsix
 cursor --install-extension dbt-flow-lineage.vsix
 ```
 
-### Option 3: Build from source
+### Option 4: Build from source
 
 ```bash
 git clone https://github.com/tripleaceme/dbt-flow-lineage.git
@@ -94,9 +99,6 @@ npx vsce package
 code --install-extension dbt-flow-lineage-0.1.0.vsix
 ```
 
-### From VS Code Marketplace (coming soon)
-
-Search for **"dbt Flow Lineage"** in the Extensions tab.
 
 ## Requirements
 
