@@ -4,7 +4,27 @@
 
 See exactly how each column flows through your dbt models — from source to final table — with color-coded animated paths that show passthrough, renames, transforms, and aggregations.
 
-![dbt Flow Lineage](https://raw.githubusercontent.com/tripleaceme/dbt-flow-lineage/main/media/demo.png)
+## Screenshots
+
+### Model-Focused View with Direction Filters
+Click any model in the sidebar to see its lineage. Use the **Both / Upstream / Downstream** toggle to control what's visible.
+
+![Focused View](media/demo-focused-view.png)
+
+### Draggable Layout
+Drag model nodes to rearrange the graph. Edges and particles follow automatically.
+
+![Draggable Layout](media/demo-dragged-layout.png)
+
+### Column Path Tracing
+Click any column to highlight its full upstream/downstream path. Unlinked columns grey out. Particles speed up on the selected path.
+
+![Column Tracing](media/demo-column-tracing.png)
+
+### Full Lineage for Complex Models
+View the complete lineage of OBT (One Big Table) models spanning sources through staging, dimensions, and facts.
+
+![OBT Lineage](media/demo-obt-lineage.png)
 
 ## Features
 
@@ -40,16 +60,17 @@ Drag model boxes to rearrange the graph layout. Edges and animations follow auto
 
 ## Installation
 
-### From GitHub (recommended for now)
+### Option 1: Download from GitHub Releases (recommended)
 
-1. Go to the [Releases page](https://github.com/tripleaceme/dbt-flow-lineage/releases)
-2. Download the latest `.vsix` file
-3. In VS Code / Cursor / Windsurf, open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`)
-4. Run **"Extensions: Install from VSIX..."**
-5. Select the downloaded `.vsix` file
-6. Reload the window when prompted
+1. **[Download the latest `.vsix` from GitHub Releases](https://github.com/tripleaceme/dbt-flow-lineage/releases/tag/v0.1.0)**
+2. In VS Code / Cursor / Windsurf, go to the **Extensions** tab
+3. Click the **`...`** menu (top-right of Extensions panel) → **"Install from VSIX..."**
+4. Select the downloaded `.vsix` file
+5. Reload the window when prompted
 
-**Or install from the terminal:**
+![Install from VSIX](media/install-from.gif)
+
+### Option 2: Install from terminal
 
 ```bash
 # Download the latest release
@@ -62,7 +83,7 @@ code --install-extension dbt-flow-lineage.vsix
 cursor --install-extension dbt-flow-lineage.vsix
 ```
 
-**Or build from source:**
+### Option 3: Build from source
 
 ```bash
 git clone https://github.com/tripleaceme/dbt-flow-lineage.git
@@ -139,6 +160,10 @@ Works on:
 - **Windsurf**
 - **VSCodium**
 - Any VS Code fork
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/tripleaceme/dbt-flow-lineage).
 
 ## License
 
