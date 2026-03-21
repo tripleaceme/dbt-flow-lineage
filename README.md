@@ -60,12 +60,13 @@ Drag model boxes to rearrange the graph layout. Edges and animations follow auto
 
 ## Installation
 
-### Option 1: From VS Code Marketplace
+### Option 1: From VS Code Marketplace (recommended)
 
-Search for **"dbt Flow Lineage"** in the Extensions tab.
+Search for **"dbt Flow Lineage"** in the Extensions tab and click **Install**.
 
+![VS Code Marketplace](media/flow-marketplace.png)
 
-### Option 2: Download from GitHub Releases for more updated version (recommended)
+### Option 2: Download from GitHub Releases (latest updates)
 
 1. **[Download the latest `.vsix` from GitHub Releases](https://github.com/tripleaceme/dbt-flow-lineage/releases/tag/v0.1.0)**
 2. In VS Code / Cursor / Windsurf, go to the **Extensions** tab
