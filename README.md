@@ -1,7 +1,7 @@
 # dbt Flow Lineage
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/tripleaceme.dbt-flow-lineage?label=VS%20Code%20Marketplace&color=007acc&logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=tripleaceme.dbt-flow-lineage)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/tripleaceme.dbt-flow-lineage?color=success)](https://marketplace.visualstudio.com/items?itemName=tripleaceme.dbt-flow-lineage)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/tripleaceme.dbt-flow-lineage?color=success&cacheSeconds=3600)](https://marketplace.visualstudio.com/items?itemName=tripleaceme.dbt-flow-lineage)
 [![Rating](https://img.shields.io/visual-studio-marketplace/r/tripleaceme.dbt-flow-lineage?color=orange)](https://marketplace.visualstudio.com/items?itemName=tripleaceme.dbt-flow-lineage)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
