@@ -173,8 +173,15 @@ export class LineageWebviewProvider {
   }
 
   private async savePNG(dataUrl: string) {
+    // Use focused model name in filename if available
+    let filename = 'lineage-graph.png';
+    if (this.pendingFocusModelId) {
+      const modelName = this.pendingFocusModelId.split('.').pop() || 'graph';
+      filename = `lineage-${modelName}.png`;
+    }
+
     const uri = await vscode.window.showSaveDialog({
-      defaultUri: vscode.Uri.file('lineage-graph.png'),
+      defaultUri: vscode.Uri.file(filename),
       filters: { 'PNG Image': ['png'] },
     });
     if (!uri) return;

@@ -171,7 +171,7 @@ Works on:
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/tripleaceme/dbt-flow-lineage).
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, project structure, and PR guidelines.
 
 ## License
 

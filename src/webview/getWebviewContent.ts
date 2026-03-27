@@ -12,7 +12,7 @@ export function getWebviewContent(webview: vscode.Webview, scriptUri: vscode.Uri
     content="default-src 'none';
     script-src 'nonce-${nonce}';
     style-src 'unsafe-inline';
-    img-src data:;
+    img-src data: blob:;
     font-src ${webview.cspSource};">
   <title>dbt Flow Lineage</title>
   <style>

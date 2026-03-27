@@ -345,9 +345,15 @@ export class GraphRenderer {
     const clone = svgNode.cloneNode(true) as SVGSVGElement;
     const bbox = this.rootGroup.node()!.getBBox();
     const pad = 40;
-    clone.setAttribute('width', String(bbox.width + pad * 2));
-    clone.setAttribute('height', String(bbox.height + pad * 2));
-    clone.setAttribute('viewBox', `${bbox.x - pad} ${bbox.y - pad} ${bbox.width + pad * 2} ${bbox.height + pad * 2}`);
+    const w = Math.ceil(bbox.width + pad * 2);
+    const h = Math.ceil(bbox.height + pad * 2);
+    clone.setAttribute('width', String(w));
+    clone.setAttribute('height', String(h));
+    clone.setAttribute('viewBox', `${bbox.x - pad} ${bbox.y - pad} ${w} ${h}`);
+
+    // Reset the root group transform so viewBox controls the viewport
+    const rootClone = clone.querySelector('.root');
+    if (rootClone) rootClone.setAttribute('transform', '');
 
     // Inline critical styles
     const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
