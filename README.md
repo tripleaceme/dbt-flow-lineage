@@ -69,7 +69,7 @@ Drag model boxes to rearrange the graph layout. Edges and animations follow auto
 
 Search for **"dbt Flow Lineage"** in the Extensions tab and click **Install**.
 
-![VS Code Marketplace](media/flow-marketplace.png)
+[![VS Code Marketplace](media/from-marketplace.png)](https://marketplace.visualstudio.com/items?itemName=tripleaceme.dbt-flow-lineage)
 
 ### Option 2: Download from GitHub Releases (latest updates)
 
